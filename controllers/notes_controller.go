@@ -116,19 +116,76 @@ func GetNotesPaginated(c *gin.Context) {
 
 	offset := (page - 1) * limit
 
-	// 查询用户的笔记
+	// 查询用户的笔记，按创建时间倒序排列
 	var notes []models.Note
-	result := config.DB.Where("user_id = ?", userID).Offset(offset).Limit(limit).Find(&notes)
+	result := config.DB.Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(limit).
+		Find(&notes)
+
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notes"})
 		return
 	}
 
-	// 获取笔记总数
+	// 获取总数
 	var total int64
 	config.DB.Model(&models.Note{}).Where("user_id = ?", userID).Count(&total)
 
 	// 返回分页结果
+	c.JSON(http.StatusOK, gin.H{
+		"notes": notes,
+		"pagination": gin.H{
+			"current_page": page,
+			"per_page":     limit,
+			"total":        total,
+		},
+	})
+}
+
+func SearchNotes(c *gin.Context) {
+	userID := c.GetUint("userID")
+
+	// 获取查询参数
+	query := c.DefaultQuery("q", "")
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	// 查询用户的笔记，根据标题或内容搜索
+	var notes []models.Note
+	result := config.DB.Where("user_id = ?", userID).
+		Where("title ILIKE ? OR content ILIKE ?", "%"+query+"%", "%"+query+"%").
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(limit).
+		Find(&notes)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search notes"})
+		return
+	}
+
+	// 获取总数
+	var total int64
+	config.DB.Model(&models.Note{}).
+		Where("user_id = ?", userID).
+		Where("title ILIKE ? OR content ILIKE ?", "%"+query+"%", "%"+query+"%").
+		Count(&total)
+
+	// 返回结果
 	c.JSON(http.StatusOK, gin.H{
 		"notes": notes,
 		"pagination": gin.H{

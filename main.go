@@ -5,6 +5,7 @@ import (
 	"markdown-notes-backend/config"
 	"markdown-notes-backend/models"
 	"markdown-notes-backend/routes"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +26,11 @@ func main() {
 
 	router := gin.New()
 	router.RedirectTrailingSlash = false
+
+	router.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Server is running!")
+	})
+
 	routes.AuthRoutes(router)
 	routes.NotesRoutes(router)
 
