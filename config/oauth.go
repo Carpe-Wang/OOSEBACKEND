@@ -20,6 +20,7 @@ func InitOAuth() {
 			os.Getenv("GITHUB_CLIENT_ID"),
 			os.Getenv("GITHUB_CLIENT_SECRET"),
 			os.Getenv("GITHUB_CALLBACK_URL"),
+			"user:email", // 添加 user:email 范围
 		),
 	)
 

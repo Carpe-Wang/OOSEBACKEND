@@ -17,18 +17,20 @@ func main() {
 	config.InitOAuth()
 
 	// Auto-migrate models
-	err := config.DB.AutoMigrate(&models.User{}, &models.Note{})
-	if err != nil {
+	if err := config.DB.AutoMigrate(&models.User{}, &models.Note{}); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
 	log.Println("Database migrated successfully!")
 
-	// Initialize Gin
-	router := gin.Default()
-
-	// Register routes
+	router := gin.New()
+	router.RedirectTrailingSlash = false
 	routes.AuthRoutes(router)
+	routes.NotesRoutes(router)
+
+	for _, route := range router.Routes() {
+		log.Printf("Registered Route: %s %s\n", route.Method, route.Path)
+	}
 
 	// Start server
 	log.Println("Server running at http://localhost:8080")

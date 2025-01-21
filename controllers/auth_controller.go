@@ -14,7 +14,7 @@ import (
 )
 
 func GitHubAuth(c *gin.Context) {
-	provider := "github" // 替换为你的 provider 名称
+	provider := "github"
 	c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "provider", provider))
 	gothic.BeginAuthHandler(c.Writer, c.Request)
 }
@@ -22,10 +22,13 @@ func GitHubAuth(c *gin.Context) {
 func GitHubCallback(c *gin.Context) {
 	user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Authentication failed", "details": err.Error()})
 		return
 	}
-
+	if user.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required for GitHub login"})
+		return
+	}
 	var dbUser models.User
 	result := config.DB.Where("email = ?", user.Email).First(&dbUser)
 
@@ -34,17 +37,22 @@ func GitHubCallback(c *gin.Context) {
 			Email:    user.Email,
 			Provider: user.Provider,
 		}
-		config.DB.Create(&dbUser)
+		if err := config.DB.Create(&dbUser).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user", "details": err.Error()})
+			return
+		}
 	}
-
 	token, err := generateJWT(dbUser.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
+		"user": gin.H{
+			"id":    dbUser.ID,
+			"email": dbUser.Email,
+		},
 	})
 }
 
