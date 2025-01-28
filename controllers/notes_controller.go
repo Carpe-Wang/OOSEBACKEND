@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gorm.io/gorm"
 	"markdown-notes-backend/config"
 	"markdown-notes-backend/models"
 	"net/http"
@@ -194,4 +195,22 @@ func SearchNotes(c *gin.Context) {
 			"total":        total,
 		},
 	})
+}
+func GetNoteByID(c *gin.Context) {
+	userID := c.GetUint("userID")
+	noteID := c.Param("id")
+
+	var note models.Note
+	result := config.DB.Where("id = ? AND user_id = ?", noteID, userID).First(&note)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve note"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"note": note})
 }

@@ -16,5 +16,6 @@ func NotesRoutes(router *gin.Engine) {
 		notes.GET("/search", controllers.SearchNotes) // 搜索笔记
 		notes.PUT("/:id", controllers.UpdateNote)     // 更新笔记
 		notes.DELETE("/:id", controllers.DeleteNote)  // 删除笔记
+		notes.GET("/:id", controllers.GetNoteByID)
 	}
 }

@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"github.com/golang-jwt/jwt/v5"
+	"log"
 	"markdown-notes-backend/config"
 	"markdown-notes-backend/models"
 	"net/http"
@@ -47,6 +48,15 @@ func GitHubCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
+
+	redirectBaseURL := "https://markdown-notes-frontend.vercel.app"
+	redirectURL := redirectBaseURL + "?token=" + token
+
+	// 打印日志（可选）
+	log.Printf("Redirecting to: %v", redirectURL)
+
+	// 重定向到前端页面
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"user": gin.H{

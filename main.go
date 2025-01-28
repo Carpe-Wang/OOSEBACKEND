@@ -28,17 +28,19 @@ func main() {
 	router := gin.New()
 	router.RedirectTrailingSlash = false
 
-	router.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Server is running!")
-	})
-
+	// 配置 CORS 中间件
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://markdown-notes-frontend.vercel.app/"}, // 前端地址
+		AllowOrigins:     []string{"https://markdown-notes-frontend.vercel.app", "http://your-frontend-domain.com"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
+
+	// 路由配置
+	router.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Server is running!")
+	})
 
 	routes.AuthRoutes(router)
 	routes.NotesRoutes(router)
@@ -47,7 +49,7 @@ func main() {
 		log.Printf("Registered Route: %s %s\n", route.Method, route.Path)
 	}
 
-	// Start server
+	// 启动服务器
 	log.Println("Server running at http://localhost:8080")
 	router.Run(":8080")
 }
