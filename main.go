@@ -7,6 +7,7 @@ import (
 	"markdown-notes-backend/routes"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,6 +32,14 @@ func main() {
 		c.String(http.StatusOK, "Server is running!")
 	})
 
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"https://markdown-notes-frontend.vercel.app/"}, // 前端地址
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	routes.AuthRoutes(router)
 	routes.NotesRoutes(router)
 
@@ -40,5 +49,5 @@ func main() {
 
 	// Start server
 	log.Println("Server running at http://localhost:8080")
-	router.Run("0.0.0.0:8080")
+	router.Run(":8080")
 }
