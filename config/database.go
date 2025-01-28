@@ -10,8 +10,8 @@ var DB *gorm.DB
 
 func ConnectDatabase() {
 	// 替换为你的 Supabase 数据库连接信息
-	// dsn := "host=localhost user=wangcarpe password=wkp159262 dbname=markdown_notes port=5432 sslmode=disable"
-	dsn := "host=db.hapjzsiacynlxhwtteku.supabase.co user=postgres password=yBVzAtOpzo6yvLLw dbname=postgres port=5432 sslmode=require"
+	dsn := "host=localhost user=wangcarpe password=wkp159262 dbname=markdown_notes port=5432 sslmode=disable"
+	//dsn := "host=db.hapjzsiacynlxhwtteku.supabase.co user=postgres password=yBVzAtOpzo6yvLLw dbname=postgres port=5432 sslmode=require"
 
 	// 连接数据库
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
